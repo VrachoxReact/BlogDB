@@ -1,18 +1,15 @@
-import Database from "better-sqlite3";
+import { Pool } from "pg";
+import dotenv from "dotenv";
 
-let db: Database.Database;
+dotenv.config();
 
-if (typeof process === "object") {
-  db = new Database("blog.sqlite");
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS posts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT,
-      content TEXT,
-      slug TEXT UNIQUE
-    )
-  `);
-}
+const pool = new Pool({
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: parseInt(process.env.DB_PORT || "5432"),
+});
 
 export interface Post {
   id: number;
@@ -21,31 +18,73 @@ export interface Post {
   slug: string;
 }
 
-let posts: Post[] = [];
-
-export function getPosts(): Post[] {
-  return posts;
+export async function getPosts(): Promise<Post[]> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query("SELECT * FROM posts ORDER BY id DESC");
+    return result.rows;
+  } finally {
+    client.release();
+  }
 }
 
-export function addPost(title: string, content: string, slug: string): void {
-  const newPost: Post = {
-    id: posts.length + 1,
-    title,
-    content,
-    slug,
-  };
-  posts.push(newPost);
+export async function addPost(
+  title: string,
+  content: string,
+  slug: string
+): Promise<void> {
+  const client = await pool.connect();
+  try {
+    await client.query(
+      "INSERT INTO posts (title, content, slug) VALUES ($1, $2, $3)",
+      [title, content, slug]
+    );
+  } finally {
+    client.release();
+  }
 }
 
-export function getPostBySlug(slug: string): Post | undefined {
-  return posts.find((post) => post.slug === slug);
+export async function getPostBySlug(slug: string): Promise<Post | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query("SELECT * FROM posts WHERE slug = $1", [
+      slug,
+    ]);
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
 }
 
 export async function deletePost(slug: string): Promise<boolean> {
-  const index = posts.findIndex((post) => post.slug === slug);
-  if (index !== -1) {
-    posts.splice(index, 1);
-    return true;
+  const client = await pool.connect();
+  try {
+    const result = await client.query("DELETE FROM posts WHERE slug = $1", [
+      slug,
+    ]);
+    // Use the nullish coalescing operator to provide a default value of 0
+    const rowCount = result.rowCount ?? 0;
+    return rowCount > 0;
+  } finally {
+    client.release();
   }
-  return false;
 }
+
+// Initialize the database table
+async function initializeDatabase() {
+  const client = await pool.connect();
+  try {
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS posts (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        slug TEXT UNIQUE NOT NULL
+      )
+    `);
+  } finally {
+    client.release();
+  }
+}
+
+initializeDatabase().catch(console.error);

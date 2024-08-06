@@ -11,11 +11,7 @@ export default function BlogPost({ post }: BlogPostProps) {
   const router = useRouter();
 
   if (!post) {
-    return (
-      <div style={{ textAlign: "center", fontSize: "24px", marginTop: "48px" }}>
-        Post not found
-      </div>
-    );
+    return <div className="text-center text-2xl mt-12">Post not found</div>;
   }
 
   const handleDelete = async () => {
@@ -28,86 +24,48 @@ export default function BlogPost({ post }: BlogPostProps) {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(to bottom, #EBF8FF, #FFFFFF)",
-        padding: "32px 16px",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "800px",
-          margin: "0 auto",
-          background: "white",
-          borderRadius: "8px",
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-        <div
-          style={{
-            background: "linear-gradient(to right, #3182CE, #2C5282)",
-            color: "white",
-            padding: "24px",
-            borderTopLeftRadius: "8px",
-            borderTopRightRadius: "8px",
-          }}
-        >
-          <h1
-            style={{
-              fontSize: "32px",
-              fontWeight: "bold",
-              marginBottom: "8px",
-            }}
-          >
-            {post.title}
-          </h1>
-          <p style={{ fontSize: "14px", color: "#BEE3F8" }}>
-            Published on: {new Date().toLocaleDateString()}
-          </p>
+    <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
+      <header className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-6 shadow-lg">
+        <div className="container mx-auto px-4">
+          <h1 className="text-4xl font-bold">My Blog</h1>
         </div>
-        <div style={{ padding: "24px" }}>
-          <p style={{ fontSize: "18px", lineHeight: "1.6", color: "#2D3748" }}>
-            {post.content}
-          </p>
+      </header>
+      <main className="flex-grow container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6">
+              <h1 className="text-3xl font-bold mb-2">{post.title}</h1>
+              <p className="text-sm text-indigo-100">
+                Published on: {new Date().toLocaleDateString()}
+              </p>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-700 text-lg leading-relaxed">
+                {post.content}
+              </p>
+            </div>
+          </div>
+          <div className="mt-8 flex flex-col sm:flex-row justify-between items-center">
+            <Link
+              href="/"
+              className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-300 mb-4 sm:mb-0"
+            >
+              ← Back to Home
+            </Link>
+            <button
+              onClick={handleDelete}
+              className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition-colors duration-300"
+            >
+              Delete Post
+            </button>
+          </div>
         </div>
-      </div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          maxWidth: "800px",
-          margin: "24px auto 0",
-        }}
-      >
-        <Link
-          href="/"
-          style={{
-            background: "#3182CE",
-            color: "white",
-            padding: "12px 24px",
-            borderRadius: "4px",
-            textDecoration: "none",
-            fontWeight: "bold",
-          }}
-        >
-          ← Back to Home
-        </Link>
-        <button
-          onClick={handleDelete}
-          style={{
-            background: "#E53E3E",
-            color: "white",
-            padding: "12px 24px",
-            borderRadius: "4px",
-            border: "none",
-            fontWeight: "bold",
-            cursor: "pointer",
-          }}
-        >
-          Delete Post
-        </button>
-      </div>
+      </main>
+      <footer className="bg-gray-100 py-6 border-t border-gray-200">
+        <div className="container mx-auto px-4 text-center text-gray-600">
+          © 2023 My Blog. All rights reserved.
+        </div>
+      </footer>
     </div>
   );
 }
